@@ -116,6 +116,9 @@ def batch_upload(image_paths):
     return results
 
 
+import re  # needed for add_draft
+
+
 def _truncate_utf8(text, max_bytes):
     """截断文本使UTF-8编码不超过max_bytes"""
     result = ""
@@ -194,9 +197,6 @@ def publish_draft(media_id):
         return None
 
     return data.get("publish_id") or data
-
-
-import re  # needed for add_draft digest extraction
 
 
 def main():

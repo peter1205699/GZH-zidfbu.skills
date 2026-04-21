@@ -1,145 +1,129 @@
-# 我用Claude Code十分钟搓了一个公众号自动发布系统
+# 在飞书里养了一只 AI「小龙虾」，三个月后我后悔了
 
-上周有个朋友问我："你公众号文章怎么发的？"我说："让Claude Code帮我写，帮我排版，帮我发到草稿箱。全程我只需要说一句话。"
-
-他觉得我在吹牛。但这是真的。而且整个系统从零搭建到跑通，只花了大概十分钟。
-
-今天就把这个过程拆开给你看。不是炫耀什么——说实话，这事儿真没那么难。难的是你不知道Claude Code有个东西叫**Skills**。
+> 🐟 知鱼说：别被「AI 助手」这个词忽悠了，今天咱聊聊一只叫 OpenClaw 的小龙虾，到底能不能真帮你干活。
 
 ---
 
-<!-- IMAGE_1: A cozy desk setup scene with a laptop screen showing a terminal with green code text, a cup of coffee nearby, and floating holographic interface elements showing "SKILL.md" and WeChat article preview, warm ambient lighting, modern minimalist digital illustration style -->
+🔥 **这只「小龙虾」到底是什么**
 
-## 先说说痛点
+OpenClaw，圈内人叫它「小龙虾」，一个开源的 AI Agent 框架。跟市面上那些只能陪你聊天的 AI 不一样，这玩意能直接操作你的飞书，发消息、建日程、写文档、管表格，甚至帮你在群里回复同事。
 
-运营公众号的人都知道这个流程有多折磨：
+坦率的讲，第一次听说有个 AI 能以我的身份在飞书群里说话的时候，我是有点警惕的。这东西到底能做到什么程度？不会翻车吧？
 
-1. 找选题、搜素材（30分钟起步）
-2. 写文章（1-3小时，取决于你的打字速度和拖延症程度）
-3. 找配图（要么花钱买图，要么忍受低质量免费图）
-4. 排版（公众号编辑器……用过的人都知道）
-5. 预览、调整、发布
-
-一篇文章从有想法到发出去，保守估计**2-4小时**。而且大部分时间花在了"搬砖"上——排版、找图、上传这些机械操作。
-
-我就想：这些机械操作能不能自动化？
+用了三个月之后，我的结论是，比我预期的好用，但也比我预期的有边界。
 
 ---
 
-## Skills是什么：给AI一份"操作手册"
+💡 **好用的部分，真不是吹的**
 
-Claude Code是Anthropic出品的命令行AI编程工具。你可以把它理解成一个住在终端里的程序员——能读文件、写代码、执行命令。
+**第一，飞书生态深度集成，这是它最值钱的地方。**
 
-但默认情况下，它不知道你想要什么。你说"帮我写篇公众号文章"，它可能给你一段纯文本，没有排版，没有配图，更不可能帮你发出去。
+别的 AI 工具做飞书集成，要么只能发消息，要么只能查日历。OpenClaw 几乎把我日常在飞书里做的事都覆盖了。发消息、回复消息，可以以我的身份在群里说话。管理日历，约会议、查日程、改时间，直接说人话就行。读写飞书文档，创建文档、总结内容、按指令修改。操作多维表格，查数据、增删记录。搜索消息和联系人，不用再在聊天记录里翻半天。
 
-**Skills就是解决这个问题的。** 它本质上是一个Markdown文件，叫`SKILL.md`，放在项目目录里。Claude Code启动时会自动扫描这些文件，然后在合适的时机按里面的指令行事。
+说真的，光是「不用翻聊天记录」这一条，就值了。
 
-打个比方：Skills就像给新来的实习生一本SOP手册。不用每次口头交代，他翻开手册就知道该怎么做。
+<!-- IMAGE_1: A minimalist digital illustration of a friendly robotic crayfish character sitting at an office desk with floating holographic screens showing chat messages, calendar, and spreadsheets, warm lighting, clean composition, digital art style, high quality, 16:9 aspect ratio -->
 
----
+**第二，记忆系统，它真的「记得住」。**
 
-<!-- IMAGE_2: A technical blueprint-style diagram showing a flowchart of the article publishing pipeline - left side shows "Topic Input" flowing through "Research" "Writing" "Image Gen" "WeChat API" boxes connected by arrows, each box with small icon, dark blue background with neon cyan connecting lines, clean technical illustration style -->
+传统 AI 每次对话都是白板，但 OpenClaw 有文件记忆系统。它会读 MEMORY.md、每日日志、长期记忆笔记。我自己的经验是，告诉它一次「我周报截止日是每周五」，它真的记住了，下次周报前会主动提醒我。
 
-## 十分钟搭建：从头拆解
+这感觉怎么说呢，就像养了一个永远不会忘事的助手。
 
-整个系统就三个Python脚本加一个SKILL.md文件。结构长这样：
+**第三，定时任务和心跳机制。**
 
-```
-ai-wechat-publisher/
-├── SKILL.md              # 核心中的核心：定义完整工作流
-├── references/
-│   └── style-guide.md    # 写作风格指南
-└── scripts/
-    ├── wechat_api.py     # 微信API封装
-    ├── publish.py        # Markdown转HTML+发草稿
-    └── image_gen.py      # AI配图生成
-```
-
-**第一步：写SKILL.md（5分钟）**
-
-这是最关键的一步。我把整个创作流程拆成了5个步骤写进去：
-
-- 第0步：问用户要什么主题、什么风格
-- 第1步：搜索素材
-- 第2步：按风格指南生成文章
-- 第3步：AI生成配图
-- 第4步：自动上传到微信草稿箱
-
-每一步都有具体的指令，比如"用`<!-- IMAGE_N: 描述 -->`标记配图位置"、"调用`python scripts/publish.py`发布"。
-
-Claude Code读到这份文件后，就会严格按流程执行。我说"写一篇关于DeepSeek的文章"，它自动走完全部5步。
-
-**第二步：写辅助脚本（3分钟）**
-
-三个脚本各司其职：
-
-- `wechat_api.py`：封装微信的access_token管理、图片上传、草稿箱操作。最麻烦的是token刷新和中文编码问题，这些踩过的坑都帮你处理了
-- `publish.py`：把Markdown转成公众号兼容的内联样式HTML。公众号不支持外部CSS，所以必须逐标签加style
-- `image_gen.py`：调用APImart的Gemini图片生成API。异步提交+轮询，生成失败还有fallback占位图兜底
-
-说实话，这三个脚本大部分代码都是Claude Code自己写的。我只告诉它"我需要一个微信API封装"和"图片生成要用异步模式"，它就搞定了。
-
-**第三步：写风格指南（2分钟）**
-
-`style-guide.md`是最被低估的文件。它告诉AI**怎么写才不像AI写的**：
-
-- 禁止用"近日""随着...的发展"开头
-- 禁止用"赋能""抓手""底层逻辑"这些互联网黑话
-- 要用具体数字，不要说"大幅提升"
-- 段落要短，适合手机阅读
-
-这篇文章本身就是在遵守这些规则的前提下生成的。你读到现在，有没有觉得像AI写的？
+设置提醒、延时任务、定期检查，这些都很实用。我说「下午三点提醒我开会」，它真的会在那个时间点给我发消息。从不迟到，从不忘记。
 
 ---
 
-<!-- IMAGE_3: A split-screen comparison showing two workflows - left side shows a frustrated person drowning in browser tabs with scattered documents and image editing tools labeled "Before: 4 hours", right side shows a relaxed person watching a single terminal window with automated progress bar labeled "After: one sentence", warm vs cool color contrast, clean modern illustration style -->
+🎯 **真实场景，我用它做了什么**
 
-## 实际体验：一句话搞定
+光说功能没意思，讲几个我实际用过的场景。
 
-现在我的工作流变成了这样：
+有一次我跟它说，「帮我规划下周的公众号选题，围绕效率工具这个主题，推三篇」。它立刻分析了我的公众号调性，结合当前热点，给出了三个选题方向。我选中一个说「就这个，写一篇 1500 字」。它写完之后，我说「把第三段改得更犀利一点」，它立刻调整。我再说「加一个金句收尾」，它又改。
 
-> 我：写一篇关于Claude Code Skills的文章，通俗易懂风格，3张配图
+整个过程，我只需要做决策，它负责执行。
 
-然后Claude Code自动执行：
+还有一次，有人在公众号后台问了一个技术问题，但我没及时看到。等我想起来已经过了几个小时。我让它帮我搜一下最近有没有人留言问问题，它立刻在飞书里检索，返回了具体内容。我直接回复了用户，避免了冷场。
 
-1. 搜索Skills相关的最新资料
-2. 按`style-guide.md`的风格写文章
-3. 用Gemini API生成3张配图
-4. 把文章和图片上传到微信草稿箱
-5. 告诉我`media_id`，让我去后台确认发布
+我还让它做过一件比较酷的事，帮我把过去一个月用户留言里提到的关键词整理出来，按出现频率排序。它把留言记录同步到飞书多维表格里，然后真的给我整理出了词频统计。
 
-**从一句话到草稿箱，全程不需要我动手。**
-
-当然，我一般会检查一下内容，改几个措辞，换张不满意的图。但核心工作量从4小时压缩到了十几分钟的微调。
+老实说，我一开始也没想到它能做到这种程度。
 
 ---
 
-## 几个你可能想问的
+🛠️ **想入坑？这几步先搞清楚**
 
-**Q：配图质量怎么样？**
-说实话，不如专业设计师做的。但对于大部分公众号文章来说够用了。而且你可以在SKILL.md里定义配图的风格偏好。
+说了这么多，如果你也想试试，我把这三个月踩过的坑总结一下，省得你走弯路。
 
-**Q：文章质量靠谱吗？**
-取决于你的素材质量和风格指南写得好不好。AI不是凭空创作，它是基于你提供的素材和规则来生成。风格指南越具体，输出越可控。
+**第一步，找到你的 AI 助手。**
 
-**Q：这不是作弊吗？**
-用WordPress发文章算作弊吗？用Grammarly改语法算作弊吗？工具只是把机械的部分自动化了。选题、角度、观点——这些才是真正有价值的东西。
+OpenClaw 是以飞书机器人的形式存在的。你需要先在飞书开放平台创建一个自建应用，开启机器人能力，然后把 App ID 和 App Secret 填到 OpenClaw 的配置里。
 
-**Q：我也能做吗？**
-能。你需要的东西：一个微信公众号（获取API凭证）、Claude Code（免费就能用）、一个图片生成API（有很多选择）。然后照着我的SKILL.md模板改一改就行。
+就像加了一个新同事，只不过这个同事 24 小时在线，从不疲倦。
+
+**第二步，学会「下指令」。**
+
+这是最容易踩坑的地方。OpenClaw 不是通用聊天机器人，你不能随便问它「今天天气怎么样」然后期待惊喜。它的核心能力是执行明确任务。
+
+好的指令长这样，「帮我创建明天上午 10 点的会议，邀请产品部同事」。或者「把飞书文档《Q1 总结》里所有待办事项提取出来」。再或者「每周五下午 5 点提醒我提交周报」。
+
+不好的指令长这样，「帮我分析一下我们公司的情况」。或者「你觉得我应该怎么做」。
+
+越具体，效果越好。这个规律我跟身边好几个朋友都强调过，听话的人上手速度至少快一倍。
+
+<!-- IMAGE_2: A split-screen digital illustration showing on the left side a person thinking with a lightbulb icon, on the right side an AI robot crayfish rapidly typing and generating content on multiple screens, showing the collaboration between human decision-making and AI execution, clean modern style, blue and orange color scheme, digital art style, high quality, 16:9 aspect ratio -->
+
+**第三步，利用记忆功能。**
+
+这是 OpenClaw 和普通 AI 最大的区别。它有文件记忆系统，可以记住你的偏好、习惯、重要事项。你可以在对话中随时告诉它你的规则，它会记下来，下次主动帮你。
+
+也可以通过配置文件定义它的行为模式，让它更懂你。
+
+**第四步，安装技能包扩展能力。**
+
+OpenClaw 支持第三方技能包，目前 ClawHub 上有 5700 多个。比如 TTS 语音生成，让文字变成语音。视频翻译，给视频配音翻译。新闻播客，自动生成每日新闻音频。
+
+这些技能在 GitHub 上都能找到，安装后直接在对话里调用就行。
 
 ---
 
-## 关键在于"可复用"
+⚡ **该泼的冷水**
 
-回顾一下这个系统的价值：
+好话说完了，该泼冷水了。
 
-**效率是表面。** 真正重要的是，这套流程变成了一个**可复用、可分享、可迭代**的文件。我写好一次SKILL.md，以后每次写文章都能用。我可以把它分享给同事，他们改改风格指南就能用在自己公众号上。
+**它不是「万能助手」，更像一个「高级秘书」。**
 
-这就是Skills的核心理念：把"怎么做事"的知识，从人脑转移到文件中。
+它能做的事很多，但需要你清楚知道要什么。如果你说「帮我搞定这个项目」，它会懵。但如果说「帮我创建周三下午两点的会议，邀请小明，主题是项目评审」，它秒响应。
 
-以前，一个资深运营的效率秘诀只存在于他脑子里——他知道什么选题容易爆、什么排版读者爱看、什么标题点击率高。新人来了只能慢慢学。
+怎么说呢，它需要你是一个好的「指令设计师」。
 
-现在，这些经验可以写进SKILL.md。知识不再跟着人走，而是跟着项目走。
+另外，安全这事儿不能不提。OpenClaw 能读取你的飞书消息、文档、日历，权限很广。官方建议先用个人账号测试，别直接拿企业账号上去。这个建议我很认同，毕竟数据安全不是小事。
 
-十分钟搓一个工具，换来的是以后每篇文章省4小时。这笔账，怎么算都划算。
+还有就是上手门槛。坦率的讲，对于没有技术背景的人，配置过程会有点折腾。你需要对接大模型的 API，需要配置飞书开发者平台，这些都不是点两下鼠标就能搞定的事。
+
+不过话说回来，飞书 API 调用上限已经从月 1 万次提升到月 100 万次了，这说明什么？说明飞书官方也在认真对待这件事，不是随便玩玩。
+
+---
+
+📊 **我的判断**
+
+OpenClaw 不是什么通用 AI 助手，它是一个深度绑定飞书生态的个人 AI Agent。
+
+如果你已经在用飞书，并且希望 AI 能真正帮你处理日常协作事务，它值得一试。如果你想要的是一个能聊天、能写方案的通用 AI，市面上有更多选择。
+
+我突然想到一个类比。2010 年前后，大家都在争论「智能手机到底是不是伪需求」。那时候很多人觉得手机能打电话发短信就够了，搞什么应用商店。但后来呢？智能手机重塑了所有人的工作方式。
+
+AI Agent 大概也是这个阶段。不是某一天突然「改变世界」，而是像 OpenClaw 这样的工具，一个功能一个功能地，把 AI 从「能聊天」推到「能干活」。
+
+<!-- IMAGE_3: A thoughtful digital illustration showing a balance scale with AI capabilities on one side and a security shield on the other, with a small figure carefully evaluating both sides, warm and cool color contrast, minimalist composition, digital art style, high quality, 16:9 aspect ratio -->
+
+作为一只住在飞书里三个月的「小龙虾」，我给它的评价是，好用，但还有进化空间。
+
+---
+
+> 🐟 **关于知鱼**
+>
+> 专注 AI 赛道的实战派，不整虚的概念，只讲能落地的玩法。
+>
+> 关注我，一起在这个 AI 爆炸的时代，找到属于你的机会。

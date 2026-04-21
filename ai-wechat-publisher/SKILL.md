@@ -1,219 +1,259 @@
 ---
 name: ai-wechat-publisher
-description: AI热点公众号一键发布。从搜索采集到草稿箱发布全流程自动化。当用户提到"写公众号文章"、"发公众号"、"AI热点"、"发布文章"、"写一篇关于XX的文章到公众号"、"gzh发布"、"auto publish wechat"、"draft to wechat"时触发。即使用户只说"帮我写篇文章"且上下文涉及公众号，也应触发。
+description: 公众号工具集（搜索采集 + AI配图生成）。支持知鱼说和卡兹克两种写作风格。写作规范见 WORKFLOW.md，写作由 wechraft-writer skill 处理，发布由 baoyu-post-to-wechat skill 处理。
 ---
 
-# AI 微信公众号一键发布
+# 公众号工具集：搜索采集 + AI 配图
 
-用户只需提供主题关键词（如 "写一篇 DeepSeek 的文章"），即可自动完成从素材采集到草稿箱发布的全流程。
+本工具集负责公众号工作流中的两个环节：**素材搜索采集** 和 **AI 配图生成**。
+
+> 📖 **写作风格和流程规范** 请参阅项目根目录的 **[WORKFLOW.md](../WORKFLOW.md)**
+
+---
+
+## 🎨 写作风格
+
+系统支持两种写作风格，可根据内容类型自动选择或由用户指定：
+
+### 风格 A：知鱼说（默认）
+
+- **特点**：实战派，不整虚的概念，只讲能落地的玩法
+- **适合**：行业分析、趋势解读、方法论分享
+- **排版**：🔥📊💡🎯⚡ emoji 章节，引用块开头结尾
+
+### 风格 B：卡兹克
+
+- **特点**：有见识的普通人在认真聊一件打动他的事
+- **适合**：产品体验、调查实验、个人观点
+- **排版**：无小标题，口语化转场，固定尾部
+
+> 详见 [WORKFLOW.md → 文章风格选择](../WORKFLOW.md#-文章风格选择)
+
+---
+
+## 🎯 快速触发
+
+用户输入以下任一内容即可开始创作：
+
+- "写一篇关于 [主题] 的文章" → 默认使用知鱼说风格
+- "用卡兹克风格写 [主题]" → 使用卡兹克风格 + 四层自检
+- "写 [主题] 公众号文章" → 默认知鱼说风格 + 四层自检（所有风格统一质检）
+- "创作 [主题] 内容" → 自动判断风格
+
+系统会自动按照 [WORKFLOW.md](../WORKFLOW.md) 的标准流程完成创作。
+
+---
+
+## 📋 文档分工
+
+| 文档 | 负责内容 |
+|------|----------|
+| **[WORKFLOW.md](../WORKFLOW.md)** | 📝 两种写作风格、排版格式、配图规则、质量检查、四层自检体系 |
+| **[SKILL.md](./SKILL.md)** (本文件) | 🛠️ 脚本使用、API 配置、技术实现 |
+
+---
 
 ## 前置条件
 
 项目根目录 `.env` 文件需配置：
 
-```
-WECHAT_APP_ID=公众号AppID
-WECHAT_APP_SECRET=公众号AppSecret
-APIMART_API_KEY=APImart API Key（图片生成）
-```
+```env
+# APImart 图片生成
+APIMART_API_KEY=你的API密钥
 
-依赖安装：`pip install -r requirements.txt`
-
----
-
-## 工作流程（严格按顺序执行）
-
-### 第 0 步：收集用户偏好
-
-**触发条件**：用户给出主题关键词后，先确认以下偏好再开始工作。
-
-**向用户询问**（简洁提问，不要一次问太多）：
-
-```
-主题：DeepSeek（用户已提供）
-请选择文章风格：
-  1. 技术深度 — 面向开发者，深入技术细节
-  2. 通俗易懂 — 面向大众，生动有趣
-  3. 行业分析 — 面向投资人/从业者，侧重市场分析
-
-配图数量（1-5张，默认2张）：__
+# Tavily 搜索（可选）
+TAVILY_API_KEY=你的API密钥
 ```
 
-如果用户没有明确回复，使用默认值：通俗易懂风格 + 2 张配图。不要反复追问，耽误用户时间。
+微信 API 凭证由 `baoyu-post-to-wechat` skill 管理。
 
----
+依赖安装：
 
-### 第 1 步：智能搜索采集
-
-**目标**：获取主题相关的最新高质量素材。
-
-**操作**：
-
-1. 使用 Exa 或 Tavily MCP 搜索工具，构建精准搜索词：
-   - 英文搜索：`"<主题> AI latest news update"`、`"<主题> breakthrough 2025"`
-   - 中文搜索：`"<主题> 最新消息 动态"`
-
-2. 搜索策略：
-   - 优先获取 24 小时内的内容
-   - 每次搜索返回 5-8 条结果
-   - 重点关注：官方公告、权威媒体报道、技术博客、社交平台热议
-
-3. 结构化整理采集到的信息：
-   - 事实数据（数字、日期、版本号）
-   - 关键观点和引用
-   - 市场反应和行业评价
-
-4. 保存素材摘要到 `output/research_notes.md`。
-
----
-
-### 第 2 步：内容生成引擎
-
-**目标**：基于采集素材和用户偏好风格，生成高质量公众号文章。
-
-**操作**：
-
-1. 先读取 `references/style-guide.md` 获取写作风格指南。这一步很重要——遵循风格指南才能写出不像 AI 生成的文章。
-
-2. 按以下结构生成文章（Markdown 格式）：
-
-```markdown
-# [吸引人的标题，不要太长]
-
-[开篇 — 用一个引人入胜的切入，不要用"近日"、"随着"开头]
-
----
-
-## [第一部分标题]
-
-<!-- IMAGE_1: 配图描述文字 -->
-
-[正文内容]
-
-## [第二部分标题]
-
-<!-- IMAGE_2: 配图描述文字 -->
-
-[正文内容]
-
-...
-
----
-
-[结尾 — 简洁有力，引发思考或讨论]
-```
-
-3. 配图标记规则：
-   - 使用 `<!-- IMAGE_N: 描述文字 -->` 格式
-   - N 从 1 开始递增，数量与用户要求的配图数量一致
-   - 描述文字要具体、可视化（不是"相关图片"，而是"科技蓝色背景下展示的神经网络可视化图表，带有DeepSeek logo元素"）
-   - 配图标记分散在文章各处，不要全部堆在一起
-
-4. 保存到 `output/article.md`。
-
----
-
-### 第 3 步：配图生成
-
-**目标**：为每张配图标记生成高质量图片。
-
-**操作**：
-
-1. 解析 `output/article.md` 中所有 `<!-- IMAGE_N: ... -->` 标记，提取编号和描述。
-
-2. 对每个图片描述进行优化：
-   - 在英文描述基础上追加风格关键词
-   - 添加 `"digital art style, high quality, 16:9 aspect ratio"`
-   - 如果描述是中文，翻译为英文后再提交给 API
-
-3. 调用 APImart (Gemini-3-Pro) API 生成配图（异步模式，脚本自动轮询）：
-   ```bash
-   python scripts/image_gen.py generate "优化后的英文prompt" --output "output/image_N.jpg"
-   # 可选高分辨率
-   python scripts/image_gen.py generate "优化后的英文prompt" --output "output/image_N.jpg" --resolution 2K
-   ```
-
-4. 如果某张图生成失败，使用 fallback 方案：
-   ```bash
-   python scripts/image_gen.py fallback "简短描述" --output "output/image_N.jpg"
-   ```
-
-5. 所有图片保存到 `output/` 目录。
-
----
-
-### 第 4 步：微信集成发布
-
-**目标**：将文章和图片上传到微信，创建草稿箱文章。
-
-**操作**：
-
-1. **上传所有配图到微信服务器**：
-   ```bash
-   python scripts/wechat_api.py batch-upload output/image_1.jpg output/image_2.jpg ...
-   ```
-   记录每张图片返回的 `url`（微信 mmbiz 域名 URL）。
-
-2. **转换并发布**：
-   ```bash
-   python scripts/publish.py output/article.md \
-     --replacements "IMAGE_1:微信URL1" "IMAGE_2:微信URL2" \
-     --cover-index 1
-   ```
-   脚本会：
-   - 将 Markdown 转为公众号兼容的内联样式 HTML
-   - 用微信图片 URL 替换占位标记
-   - 第一张图作为封面（thumb_media_id）
-   - 调用微信草稿箱 API 创建草稿
-
-3. 成功后记录返回的 `media_id`。
-
----
-
-### 第 5 步：用户确认
-
-**目标**：通知用户并提供后续操作指引。
-
-**操作**：输出以下内容：
-
-```
-✅ 文章已发布到公众号草稿箱！
-
-📋 标题：<标题>
-🆔 media_id：<media_id>
-🖼 配图：<N> 张
-
-请前往 mp.weixin.qq.com → 内容管理 → 草稿箱 检查文章。
-
-需要我帮你：
-  1. 直接发布（确认内容无误后）
-  2. 修改文章（告诉我需要改哪里）
-  3. 重新生成配图
-```
-
-如果用户回复"直接发布"或"发布"：
 ```bash
-python scripts/wechat_api.py publish <media_id>
+pip install -r requirements.txt
 ```
 
 ---
 
 ## 脚本说明
 
-| 脚本 | 功能 |
-|------|------|
-| `scripts/wechat_api.py` | 微信 API：token管理、图片上传、草稿箱、发布 |
-| `scripts/publish.py` | Markdown→HTML转换、占位符替换、草稿创建 |
-| `scripts/image_gen.py` | APImart (Gemini-3-Pro) 配图生成（异步轮询）+ fallback占位图 |
+| 脚本 | 功能 | 对应 WORKFLOW 步骤 |
+|------|------|-------------------|
+| `scripts/research.py` | Tavily + Exa 双引擎搜索采集 | Step 2: 搜索素材 |
+| `scripts/image_gen.py` | APImart AI 配图生成 | Step 5: 生成配图 |
+| `scripts/wechat_api.py` | 微信素材上传 | Step 6: 上传图片 |
+| `scripts/publish.py` | 微信草稿箱发布 | Step 7: 发布到微信 |
 
-每个脚本都支持 `--help` 查看详细用法。
+---
+
+## 1. 素材搜索采集
+
+**目标**：获取主题相关的最新高质量素材。
+
+**双引擎支持**：
+- **Tavily**：综合搜索，支持新闻/财经分类、时间范围过滤
+- **Exa**：语义搜索，擅长高质量内容发现、AI 摘要、学术/技术内容
+
+### 深度研究（推荐，双引擎）
+
+```bash
+cd <项目根>
+# 双引擎搜索（默认，Tavily + Exa）
+py ai-wechat-publisher/scripts/research.py research "<主题>" --save output/research_notes.md
+
+# 仅 Tavily
+py ai-wechat-publisher/scripts/research.py research "<主题>" --engine tavily --save output/research_notes.md
+
+# 仅 Exa
+py ai-wechat-publisher/scripts/research.py research "<主题>" --engine exa --save output/research_notes.md
+```
+
+### Tavily 搜索
+
+```bash
+# 基础搜索
+py ai-wechat-publisher/scripts/research.py search "<主题>" --max-results 5 --save output/research_notes.md
+
+# 新闻搜索
+py ai-wechat-publisher/scripts/research.py search "<主题>" --topic news --time-range week
+
+# 域名过滤
+py ai-wechat-publisher/scripts/research.py search "<主题>" --include-domains github.com,docs.anthropic.com
+```
+
+### Exa 语义搜索
+
+```bash
+# 基础语义搜索
+py ai-wechat-publisher/scripts/research.py exa-search "<主题>" --max-results 5 --with-summary
+
+# 按分类搜索（company/research paper/news/github/tweet/pdf）
+py ai-wechat-publisher/scripts/research.py exa-search "<主题>" --category "research paper" --with-text
+
+# 按日期过滤
+py ai-wechat-publisher/scripts/research.py exa-search "<主题>" --start-date "2025-01-01" --with-summary
+
+# 关键词搜索
+py ai-wechat-publisher/scripts/research.py exa-search "<主题>" --type keyword
+```
+
+### 深度提取
+
+```bash
+py ai-wechat-publisher/scripts/research.py extract "https://example.com/article" --save output/extracted.md
+```
+
+---
+
+## 2. AI 配图生成
+
+**配图规则**（详见 [WORKFLOW.md](../WORKFLOW.md)）：
+- 数量：3 张
+- 位置：30% / 60% / 90%（按文章进度）
+  - IMAGE_1（30%）吸引注意力，配合正文展开
+  - IMAGE_2（60%）缓冲节奏，配合转折分析
+  - IMAGE_3（90%）收尾升华，配合总结判断
+- 比例：16:9
+
+### 生成图片
+
+```bash
+py ai-wechat-publisher/scripts/image_gen.py generate "英文 prompt, digital art style, high quality, 16:9 aspect ratio" --output output/image_1.jpg --size 16:9
+```
+
+### 高分辨率
+
+```bash
+py ai-wechat-publisher/scripts/image_gen.py generate "英文 prompt" --output output/image_1.jpg --resolution 2K
+```
+
+### 失败回退
+
+```bash
+py ai-wechat-publisher/scripts/image_gen.py fallback "简短描述" --output output/image_1.jpg
+```
+
+---
+
+## 3. 微信发布
+
+### 上传图片
+
+```bash
+py ai-wechat-publisher/scripts/wechat_api.py batch-upload output/image_1.jpg output/image_2.jpg output/image_3.jpg
+```
+
+返回示例：
+```json
+[
+  {"media_id": "xxx", "url": "http://mmbiz.qpic.cn/...", "file": "output\\image_1.jpg"},
+  {"media_id": "yyy", "url": "http://mmbiz.qpic.cn/...", "file": "output\\image_2.jpg"}
+]
+```
+
+### 发布到草稿箱
+
+```bash
+py ai-wechat-publisher/scripts/publish.py output/article.md \
+  --replacements "IMAGE_1:url1" "IMAGE_2:url2" "IMAGE_3:url3" \
+  --cover-index 1
+```
+
+---
+
+## 完整工作流
+
+```
+用户: "写一篇关于 XX 的文章"
+         │
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│  1️⃣ 选择风格                                            │
+│     - 默认：知鱼说（实战派）                             │
+│     - 可选：卡兹克（有见识的普通人）                     │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│  2️⃣ 撰写文章                                            │
+│     按选定风格规范撰写                                    │
+│     - 知鱼说：emoji 章节标记，引用块开头结尾              │
+│     - 卡兹克：口语化转场，无小标题                        │
+│     - 统一：四层质检（L1→L2→L3→L4）                      │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│  3️⃣ ai-wechat-publisher (本工具集)                       │
+│     - research.py → 搜索采集素材（可选）                  │
+│     - image_gen.py → 生成 3 张配图                       │
+│     - wechat_api.py → 上传图片                           │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│  4️⃣ baoyu-post-to-wechat                                │
+│     - publish.py → 发布到微信草稿箱                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## 错误处理
 
 | 错误场景 | 处理方式 |
 |---------|---------|
-| access_token 过期 | 自动刷新，重试一次 |
-| 图片上传失败 | 检查大小(<10MB)和格式(jpg/png)，重新尝试 |
 | APImart 图片生成失败 | 自动使用 fallback 占位图 |
-| 草稿箱创建失败 | 检查 HTML 长度(<20000字符)，精简内容后重试 |
-| 搜索结果不足 | 扩大时间范围到 7 天，或使用备用关键词 |
+| Tavily API 报错 | 检查 TAVILY_API_KEY，自动降级到 Exa |
+| Exa API 报错 | 检查 EXA_API_KEY，自动降级到 Tavily |
+| 双引擎都失败 | 检查网络连接，手动搜索补充素材 |
+| 搜索结果不足 | 扩大时间范围，或使用备用关键词 |
+| WeChat IP 白名单 | 登录后台添加当前 IP |
+
+---
+
+## 📚 相关文档
+
+- **[WORKFLOW.md](../WORKFLOW.md)** - 两种写作风格、流程规范、四层自检体系
+- **[README.md](../README.md)** - 项目说明和快速开始
+- **[khazix-skills/khazix-writer/SKILL.md](~/.claude/skills/khazix-skills/khazix-writer/SKILL.md)** - 卡兹克风格完整参考

@@ -1,5 +1,5 @@
 """
-APImart (Gemini-3-Pro-Image) 配图生成 + fallback 占位图
+APImart (Seedream-4.0) 配图生成 + fallback 占位图
 异步模式：提交任务 → 轮询结果 → 下载图片
 
 用法:
@@ -39,8 +39,8 @@ POLL_INTERVAL = 5   # 每5秒查询一次
 POLL_TIMEOUT = 180  # 最多等3分钟
 
 
-def generate_image(prompt, output_path, size="16:9", resolution="1K"):
-    """调用 APImart Gemini-3-Pro 图片生成（异步模式）"""
+def generate_image(prompt, output_path, size="16:9", resolution="1080p"):
+    """调用 APImart Seedream-4.0 图片生成（异步模式）"""
     if not API_KEY:
         print("错误: APIMART_API_KEY 未配置", file=sys.stderr)
         return False
@@ -57,14 +57,12 @@ def generate_image(prompt, output_path, size="16:9", resolution="1K"):
         "Content-Type": "application/json",
     }
     payload = {
-        "model": "gemini-3-pro-image-preview",
+        "model": "doubao-seedream-4.0",
         "prompt": optimized,
         "size": _convert_size(size),
+        "resolution": resolution if resolution else "1080p",
         "n": 1,
     }
-    # 添加 resolution 参数（仅 2K/4K 需要显式指定）
-    if resolution and resolution.upper() != "1K":
-        payload["resolution"] = resolution.upper()
 
     try:
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
@@ -144,7 +142,7 @@ def _query_task(task_id):
 def _convert_size(size):
     """将尺寸格式转为 API 支持的比例格式
 
-    Gemini-3-Pro 支持的比例: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9
+    Seedream-4.0 支持的比例: 1:1, 2:3, 3:2, 3:4, 4:3, 9:16, 16:9, 21:9, 9:21
     """
     # 如果已经是比例格式（如 16:9），直接返回
     if ":" in str(size):
@@ -325,8 +323,8 @@ def main():
     gen.add_argument("--output", required=True, help="输出路径")
     gen.add_argument("--size", default="16:9",
                      help="图片比例 (默认 16:9，支持 1:1, 4:3, 9:16 等)")
-    gen.add_argument("--resolution", default="1K",
-                     help="分辨率 (1K/2K/4K，默认 1K)")
+    gen.add_argument("--resolution", default="1080p",
+                     help="分辨率 (480p/720p/1080p，默认 1080p)")
 
     fb = sub.add_parser("fallback", help="生成 fallback 占位图")
     fb.add_argument("description", help="简短描述")
