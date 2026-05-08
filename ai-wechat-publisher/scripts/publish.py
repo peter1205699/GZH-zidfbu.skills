@@ -72,48 +72,96 @@ def _style_with_bs4(html):
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(html, "html.parser")
 
-    tag_styles = {
-        "h1": "font-size:22px;font-weight:bold;color:#1a1a1a;margin:20px 0 10px;text-align:center;",
-        "h2": "font-size:19px;font-weight:bold;color:#1a1a1a;margin:18px 0 8px;border-left:4px solid #07c160;padding-left:10px;",
+    # ── 基础标签样式 ──
+    base_styles = {
+        "h1": "font-size:22px;font-weight:bold;color:#1a1a1a;margin:20px 0 10px;text-align:center;letter-spacing:1px;",
+        "h2": "font-size:19px;font-weight:bold;color:#1a1a1a;margin:18px 0 8px;padding-left:12px;border-left:4px solid #07c160;",
         "h3": "font-size:17px;font-weight:bold;color:#333;margin:14px 0 6px;",
-        "p": "font-size:16px;line-height:1.75;color:#333;margin:8px 0;",
-        "img": "max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block;",
-        "blockquote": "border-left:4px solid #07c160;padding:10px 15px;background:#f6f6f6;margin:12px 0;",
-        "code": "background:#f0f0f0;padding:2px 6px;border-radius:3px;font-family:Menlo,Monaco,Consolas,monospace;font-size:14px;",
-        "pre": "background:#2d2d2d;color:#f8f8f2;padding:16px;border-radius:8px;overflow-x:auto;margin:12px 0;",
-        "li": "font-size:16px;line-height:1.75;color:#333;margin:4px 0;",
+        "p": "font-size:16px;line-height:1.8;color:#333;margin:8px 0;letter-spacing:0.5px;",
+        "img": "max-width:100%;height:auto;border-radius:8px;margin:16px auto;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08);",
+        "blockquote": "margin:16px 0;padding:12px 16px;border-radius:0 10px 10px 0;background:#f8f9fa;",
+        "code": "background:#f0f0f0;padding:2px 6px;border-radius:3px;font-family:Menlo,Monaco,Consolas,monospace;font-size:14px;color:#e83e8c;",
+        "pre": "background:#2d2d2d;color:#f8f8f2;padding:18px;border-radius:10px;overflow-x:auto;margin:14px 0;line-height:1.6;",
+        "li": "font-size:16px;line-height:1.8;color:#333;margin:4px 0;",
         "strong": "color:#1a1a1a;font-weight:bold;",
-        "a": "color:#07c160;text-decoration:none;",
+        "a": "color:#07c160;text-decoration:none;border-bottom:1px solid #07c16040;",
+        "hr": "border:none;height:1px;background:linear-gradient(to right,transparent,#ccc,transparent);margin:24px 0;",
+        "table": "width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;",
+        "th": "background:#f8f9fa;padding:8px 12px;border:1px solid #e9ecef;font-weight:bold;text-align:left;",
+        "td": "padding:8px 12px;border:1px solid #e9ecef;",
     }
 
-    for tag_name, style in tag_styles.items():
+    for tag_name, style in base_styles.items():
         for tag in soup.find_all(tag_name):
             existing = tag.get("style", "")
             tag["style"] = style + existing
 
-    # pre > code 不需要额外背景
+    # ── Emoji 章节标题（🔥📊💡🎯⚡）渐变色卡片 ──
+    SECTION_COLORS = {
+        "🔥": "#e74c3c", "📊": "#3498db", "💡": "#f39c12",
+        "🎯": "#2ecc71", "⚡": "#9b59b6", "🛠": "#1abc9c",
+        "📌": "#e67e22", "🔑": "#2c3e50",
+    }
+    for p in soup.find_all("p"):
+        text = p.get_text()
+        for emoji, color in SECTION_COLORS.items():
+            if text.startswith(emoji):
+                p["style"] = (
+                    f"font-size:18px;font-weight:bold;color:#1a1a1a;"
+                    f"margin:28px 0 14px;padding:12px 16px;"
+                    f"background:linear-gradient(135deg,{color}12,{color}06);"
+                    f"border-left:4px solid {color};border-radius:0 10px 10px 0;"
+                )
+                break
+
+    # ── 品牌引用块（🐟 知鱼说 / 关于知鱼） ──
+    for bq in soup.find_all("blockquote"):
+        text = bq.get_text()
+        if "🐟" in text:
+            if "关于知鱼" in text:
+                bq["style"] = (
+                    "border:none;margin:28px 0 0;padding:20px;"
+                    "background:linear-gradient(135deg,#07c16010,#07c16005);"
+                    "border-radius:12px;text-align:center;"
+                )
+                for p in bq.find_all("p"):
+                    p["style"] = "color:#888;font-size:14px;margin:4px 0;line-height:1.7;"
+            else:
+                bq["style"] = (
+                    "border:none;margin:16px 0;padding:18px 20px;"
+                    "background:linear-gradient(135deg,#07c1600c,#07c16004);"
+                    "border-radius:12px;"
+                )
+                for p in bq.find_all("p"):
+                    p["style"] = "color:#555;font-size:16px;margin:4px 0;line-height:1.8;font-style:italic;"
+        else:
+            bq["style"] = (
+                "margin:16px 0;padding:14px 18px;border-radius:0 10px 10px 0;"
+                "background:#f8f9fa;border-left:4px solid #07c160;"
+            )
+            for p in bq.find_all("p"):
+                p["style"] = "color:#666;font-size:15px;margin:4px 0;line-height:1.75;"
+
+    # ── pre > code 内联代码不需要额外背景 ──
     for pre in soup.find_all("pre"):
         for code in pre.find_all("code"):
             code["style"] = "color:inherit;padding:0;background:none;font-size:13px;line-height:1.6;"
-
-    # blockquote > p 特殊样式
-    for bq in soup.find_all("blockquote"):
-        for p in bq.find_all("p"):
-            p["style"] = "color:#666;font-size:15px;margin:4px 0;"
 
     return str(soup)
 
 
 def _style_with_regex(html):
-    """无 BeautifulSoup 时用正则处理"""
+    """无 BeautifulSoup 时用正则处理（基础回退）"""
     replacements = [
-        (r"<h1>", '<h1 style="font-size:22px;font-weight:bold;color:#1a1a1a;margin:20px 0 10px;text-align:center;">'),
-        (r"<h2>", '<h2 style="font-size:19px;font-weight:bold;color:#1a1a1a;margin:18px 0 8px;border-left:4px solid #07c160;padding-left:10px;">'),
+        (r"<h1>", '<h1 style="font-size:22px;font-weight:bold;color:#1a1a1a;margin:20px 0 10px;text-align:center;letter-spacing:1px;">'),
+        (r"<h2>", '<h2 style="font-size:19px;font-weight:bold;color:#1a1a1a;margin:18px 0 8px;padding-left:12px;border-left:4px solid #07c160;">'),
         (r"<h3>", '<h3 style="font-size:17px;font-weight:bold;color:#333;margin:14px 0 6px;">'),
-        (r"<p>", '<p style="font-size:16px;line-height:1.75;color:#333;margin:8px 0;">'),
-        (r"<img ", '<img style="max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block;" '),
-        (r"<li>", '<li style="font-size:16px;line-height:1.75;color:#333;margin:4px 0;">'),
+        (r"<p>", '<p style="font-size:16px;line-height:1.8;color:#333;margin:8px 0;letter-spacing:0.5px;">'),
+        (r"<img ", '<img style="max-width:100%;height:auto;border-radius:8px;margin:16px auto;display:block;box-shadow:0 2px 12px rgba(0,0,0,0.08);" '),
+        (r"<blockquote>", '<blockquote style="margin:16px 0;padding:14px 18px;border-radius:0 10px 10px 0;background:#f8f9fa;border-left:4px solid #07c160;">'),
+        (r"<li>", '<li style="font-size:16px;line-height:1.8;color:#333;margin:4px 0;">'),
         (r"<strong>", '<strong style="color:#1a1a1a;font-weight:bold;">'),
+        (r"<hr>", '<hr style="border:none;height:1px;background:linear-gradient(to right,transparent,#ccc,transparent);margin:24px 0;">'),
     ]
     for pattern, replacement in replacements:
         html = re.sub(pattern, replacement, html)
