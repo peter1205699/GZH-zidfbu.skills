@@ -1,0 +1,107 @@
+[
+  {
+    "query": "Claude Code practical tips tricks best practices 2025 2026",
+    "title": "Claude Code Prompting Guide 2025 | 10 Essential Practical Techniques - SmartScope",
+    "url": "https://smartscope.blog/en/generative-ai/claude/claude-code-prompting-official-guidelines-2025/",
+    "content": "## Environment Configuration Best Practices¶\n\nClaude Code's output quality depends not just on prompts but also on environment configuration.\n\n### Creating CLAUDE.md¶\n\nPlace a `CLAUDE.md` file at the project root to provide Claude Code with project-specific context.\n\n```\n# Bootstrap with auto-generation  \n```\n\nCLAUDE.md Tips\n\n Keep it concise and actionable (overly long instructions get buried)\n I",
+    "score": 0.9999957
+  },
+  {
+    "query": "Claude Code practical tips tricks best practices 2025 2026",
+    "title": "7 Claude Code best practices for 2026 (from real projects) - eesel AI",
+    "url": "https://www.eesel.ai/blog/claude-code-best-practices",
+    "content": "Different jobs require different tools, and the same goes for workflows. This table gives you a quick overview of the main approaches we'll be covering in the best practices below. [...] This is where you can really start automating the boring stuff. The idea is to move beyond interactive sessions and use Claude Code for hands-off automation, especially in your CI/CD pipelines.\n\nYou can run Claude",
+    "score": 0.9999914
+  },
+  {
+    "query": "Claude Code practical tips tricks best practices 2025 2026",
+    "title": "Claude Code - Best Practices | SFEIR Institute",
+    "url": "https://institute.sfeir.com/en/claude-code/claude-code-resources/best-practices/",
+    "content": "🏆SFEIR is the Google Cloud EMEA Training Partner of the Year 2025🤝New partnership: Official GitLab Training🤖New training: AI-Augmented Developer\n\n🏆SFEIR is the Google Cloud EMEA Training Partner of the Year 2025🤝New partnership: Official GitLab Training🤖New training: AI-Augmented Developer\n\nBest practices11 min read\n\n# Claude Code - Best Practices\n\nSFEIR Institute•\n\n### TL;DR\n\nThe three most impac",
+    "score": 0.9999902
+  },
+  {
+    "query": "Claude Code practical tips tricks best practices 2025 2026",
+    "title": "Claude Code Best Practices",
+    "url": "https://rosmur.github.io/claudecode-best-practices/",
+    "content": "1. Context Management is Paramount: The most successful Claude Code users obsessively manage context through CLAUDE.md files, aggressive /clear usage, documentation systems (dev docs, living plans), and token-efficient tool design. Context degradation is the primary failure mode.\n2. Planning Before Implementation is Non-Negotiable: Every high-quality source emphasizes upfront planning (Planning Mo",
+    "score": 0.9999763
+  },
+  {
+    "query": "Claude Code practical tips tricks best practices 2025 2026",
+    "title": "45 Claude Code Tips From basics to advanced - GitHub",
+    "url": "https://github.com/ykdojo/claude-code-tips",
+    "content": "Sometimes prototyping helps with that. Just by making a simple prototype quickly, you might be able to say \"okay, this technology works for this particular purpose\" or \"this other technology works better.\" [...] ## Tip 5: AI context is like milk; it's best served fresh and condensed!\n\nWhen you start a new conversation with Claude Code, it performs the best because it doesn't have all the added com",
+    "score": 0.9999641
+  },
+  {
+    "query": "Claude Code real world use cases developer workflow automation",
+    "title": "What are some real-world use cases for Claude Code? - Milvus",
+    "url": "https://milvus.io/ai-quick-reference/what-are-some-realworld-use-cases-for-claude-code",
+    "content": "Real-world applications of Claude Code span across various industries and development scenarios, with particularly strong adoption in enterprise software development, DevOps automation, and large-scale codebase maintenance. Major technology companies use Claude Code for legacy system modernization projects where understanding and refactoring large, complex codebases requires sophisticated analysis",
+    "score": 0.90039873
+  },
+  {
+    "query": "Claude Code real world use cases developer workflow automation",
+    "title": "A developer's guide to Claude Code workflow automation in 2025",
+    "url": "https://www.eesel.ai/blog/claude-code-workflow-automation",
+    "content": "### Triggering real-time actions\n\nHooks are basically event-driven triggers that let you run custom scripts at specific moments in Claude's process. You can set them up to fire at points like `PreToolUse` (before a tool is run), `PostToolUse` (after a tool finishes), or `Stop` (when the entire task is done).\n\nA really practical use case is setting up a `PostToolUse` hook that fires every time Clau",
+    "score": 0.8724455
+  },
+  {
+    "query": "Claude Code real world use cases developer workflow automation",
+    "title": "Claude Code in Production: Real Workflows from Teams Using AI Development Agents",
+    "url": "https://www.nextsteps.dev/en/posts/claude-code-a-developers-guide/",
+    "content": "Claude Code represents a fundamentally different approach: an AI agent that operates through the same command-line tools you already use, exploring codebases the way an experienced developer would—through search, discovery, and iterative understanding. After months of real-world usage across various development teams, clear patterns have emerged for maximizing its effectiveness in production envir",
+    "score": 0.83093774
+  },
+  {
+    "query": "Claude Code real world use cases developer workflow automation",
+    "title": "How I turned Claude into a workflow automation engine | Matthew O'Connell posted on the topic | LinkedIn",
+    "url": "https://www.linkedin.com/posts/mjocon_i-turned-claude-into-my-personal-workflow-activity-7359210397523976194-gNfk",
+    "content": "→ the app is deployed to staging or production 4️⃣ A Slack or email notification confirms deployment 🎉 💡 𝗥𝗲𝗮𝗹-𝗪𝗼𝗿𝗹𝗱 𝗨𝘀𝗲 𝗖𝗮𝘀𝗲: When paired with Docker and Kubernetes, CI/CD pipelines can build images, run tests, and deploy to clusters — all in minutes. It’s how leading tech teams release features daily with confidence. ⚙️ 𝗣𝗿𝗼 𝗧𝗶𝗽: Start small — create a simple Jenkins pipeline or GitHub Actions wor",
+    "score": 0.82994765
+  },
+  {
+    "query": "Claude Code real world use cases developer workflow automation",
+    "title": "Claude Code in Real Workflows: The Honest Guide to What Actually Works",
+    "url": "https://medium.com/@iquantumdigital/claude-code-in-real-workflows-the-honest-guide-to-what-actually-works-10b8479c7200",
+    "content": "Pattern Two: Code Explanation as a Learning Tool\n\nOne of the highest value uses of Claude in a real development workflow is not generating code. It is explaining code that already exists. Paste in a function, a class, a query, or a full file and ask for a plain English explanation of what it does, why it might be structured that way, and what you should understand before modifying it. [...] This d",
+    "score": 0.8033131
+  },
+  {
+    "query": "Claude Code CLAUDE.md MCP configuration tutorial",
+    "title": "Claude Code MCP Integration Guide: Complete Setup Tutorial for ...",
+    "url": "https://vibecodinglearn.com/claude-code-mcp-integration",
+    "content": "### 🎯 What You'll Achieve\n\nBy the end of this tutorial, you'll have Claude Code connected to a GitHub MCP server, enabling you to manage repositories, create issues, and automate workflows directly through AI conversations.\n\n#### Prerequisites:\n\n • Claude Code account (claude.ai/code)\n • GitHub account with repository access\n • Node.js 18+ installed on your machine\n • Basic terminal/command line k",
+    "score": 0.8506799
+  },
+  {
+    "query": "Claude Code CLAUDE.md MCP configuration tutorial",
+    "title": "MCP with Claude: Basics, Quick Tutorial & Top 10 MCP Servers",
+    "url": "https://obot.ai/resources/learning-center/mcp-claude/",
+    "content": "#### Try Obot Today\n\n⬇️ Download the Obot open-source gateway on GitHub and begin integrating your systems with a secure, extensible MCP foundation.\n\n## Quick Tutorial: Connecting Claude Code to Tools via MCP\n\n### Installing MCP Servers\n\nTo connect Claude Code to external tools using the Model Context Protocol (MCP), you must configure MCP servers. These servers act as bridges between Claude and t",
+    "score": 0.843393
+  },
+  {
+    "query": "Claude Code CLAUDE.md MCP configuration tutorial",
+    "title": "Claude Code MCP: How To Add To Servers (2026): Full Tutorial",
+    "url": "https://www.youtube.com/watch?v=4fFPGvZ3gEQ",
+    "content": "Claude Code MCP: How To Add To Servers (2026): Full Tutorial In this video, we show you everything you need to know about adding MCP to servers using Claude Code in 2026. Learn how to configure MCP, connect it to your servers, manage integrations, and automate workflows step-by-step. This full tutorial walks you through the setup process, key configuration options, and best practices so you can su",
+    "score": 0.8396422
+  },
+  {
+    "query": "Claude Code CLAUDE.md MCP configuration tutorial",
+    "title": "Set Up MCP with Claude Code | SailPoint Developer Community",
+    "url": "https://developer.sailpoint.com/docs/extensibility/mcp/integrations/claude-code/",
+    "content": "## Step 1: Set Up Authentication​\n\nFirst, you'll need to configure your authentication token as an environment variable. This keeps your credentials secure and separate from your configuration.\n\n### Setting the Environment Variable​\n\nOn macOS/Linux:\n\n`export AUTH_TOKEN=\"your_actual_token_here\"`\n\nOn Windows (Command Prompt):\n\n`set AUTH_TOKEN=your_actual_token_here`\n\nOn Windows (PowerShell):\n\n`$env:",
+    "score": 0.82288796
+  },
+  {
+    "query": "Claude Code CLAUDE.md MCP configuration tutorial",
+    "title": "MCP: Model Context Protocol - Quickstart - SFEIR Institute",
+    "url": "https://institute.sfeir.com/en/claude-code/claude-code-mcp-model-context-protocol/quickstart/",
+    "content": "Set up your first MCP server in Claude Code in under 5 minutes. This guide shows you how to add an MCP server via stdio or SSE, test the available tools, and secure your connections - step by step, with no unnecessary theory.\n\nAdding an MCP server (stdio, SSE, HTTP) in 5 minutes is an essential aspect of mastering Claude Code.\n\nMCP (Model Context Protocol) is an open standard created by Anthropic ",
+    "score": 0.7781275
+  }
+]
