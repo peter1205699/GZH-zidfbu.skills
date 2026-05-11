@@ -54,6 +54,29 @@
 
 ## 创作流程（7 步）
 
+### Step 0.5：检查历史表现
+
+在开始创作前，检查已发布文章的数据表现，优化选题和策略。
+
+```bash
+# 同步最新数据
+NO_PROXY=api.weixin.qq.com HTTP_PROXY= HTTPS_PROXY \
+py ai-wechat-publisher/scripts/wechat_analytics.py sync
+
+# 生成分析报告
+py ai-wechat-publisher/scripts/analyze_performance.py report --output output/performance_report.md
+
+# 输出关键洞察
+py ai-wechat-publisher/scripts/analyze_performance.py insights
+```
+
+如果有 `output/performance_report.md`，参考其中的规律：
+- 哪种内容类型阅读量最高
+- 哪种风格表现更好
+- 标题特征（带数字/不带数字）的表现差异
+
+---
+
 ### Step 1：确定内容类型
 
 先确定文章类型，再选写作风格。
@@ -534,13 +557,15 @@ py ai-wechat-publisher/scripts/wechat_api.py publish <media_id>
 
 ```
 output/
-├── article.md          # 文章内容
-├── image_1.jpg         # 配图1（30%）
-├── image_2.jpg         # 配图2（60%）
-├── image_3.jpg         # 配图3（90%）
-└── research_notes.md   # 研究笔记（可选，仅模式A）
+├── article.md              # 文章内容
+├── image_1.jpg             # 配图1（30%）
+├── image_2.jpg             # 配图2（60%）
+├── image_3.jpg             # 配图3（90%）
+├── research_notes.md       # 研究笔记（可选，仅模式A）
+├── published_articles.json # 发布档案（自动记录）
+└── performance_report.md   # 性能分析报告（可选）
 ```
 
 ---
 
-*最后更新：2026-04-24*
+*最后更新：2026-05-09*

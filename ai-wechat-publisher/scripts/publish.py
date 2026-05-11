@@ -1,6 +1,6 @@
 """
 Markdown → 公众号 HTML 转换 + 草稿箱发布
-支持多张配图替换
+支持多张配图替换，自动记录到发布档案
 
 用法:
   python publish.py output/article.md --replacements "IMAGE_1:url1" "IMAGE_2:url2" --cover-index 1
@@ -19,6 +19,8 @@ import markdown2
 import requests as http_requests
 
 from wechat_api import add_draft, upload_image
+
+PUBLISHED_JSON = Path(__file__).resolve().parent.parent.parent / "output" / "published_articles.json"
 
 
 def load_env():
@@ -173,6 +175,61 @@ def extract_title(md_content):
     return match.group(1).strip() if match else "AI 热点速递"
 
 
+def extract_digest(md_content):
+    """提取🐟知鱼说后的第一句作为摘要"""
+    m = re.search(r'🐟[^：]*[：：]\s*(.+?)(?:\n|$)', md_content)
+    if m:
+        return m.group(1).strip()
+    # fallback: 取第一个引用块内容
+    m = re.search(r'>\s*(.+?)(?:\n|$)', md_content)
+    if m:
+        return m.group(1).strip()
+    return ""
+
+
+def record_publish(media_id, title, md_content, replacements, thumb_media_id, author):
+    """记录发布信息到 published_articles.json"""
+    from datetime import datetime
+
+    pub = {"articles": []}
+    if PUBLISHED_JSON.exists():
+        try:
+            pub = json.loads(PUBLISHED_JSON.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # 提取配图 media_id 映射
+    image_media_ids = {"cover": thumb_media_id}
+    for key, url in replacements.items():
+        image_media_ids[key.lower()] = url
+
+    entry = {
+        "media_id": media_id,
+        "title": title,
+        "publish_date": datetime.now().strftime("%Y-%m-%d"),
+        "style": "知鱼说" if "🐟" in md_content else "卡兹克",
+        "author": author,
+        "digest": extract_digest(md_content),
+        "image_count": len(replacements),
+        "media_ids": image_media_ids,
+        "analytics": {
+            "last_synced": None,
+            "read_count": None,
+            "like_count": None,
+            "share_count": None,
+            "comment_count": None,
+            "collect_count": None,
+        },
+    }
+
+    pub["articles"].append(entry)
+    PUBLISHED_JSON.parent.mkdir(parents=True, exist_ok=True)
+    PUBLISHED_JSON.write_text(
+        json.dumps(pub, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"[记录] 已写入发布档案 published_articles.json", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Markdown → 公众号草稿箱发布")
     parser.add_argument("markdown_file", help="Markdown 文件路径")
@@ -236,6 +293,9 @@ def main():
     media_id = add_draft(title, html_content, thumb_media_id, author=args.author)
 
     if media_id:
+        # 记录到发布档案
+        record_publish(media_id, title, md_content, replacements, thumb_media_id, args.author)
+
         print(f"""
 [OK] 文章已发布到公众号草稿箱！
 

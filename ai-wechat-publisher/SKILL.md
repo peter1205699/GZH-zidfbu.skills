@@ -84,7 +84,9 @@ pip install -r requirements.txt
 | `scripts/research.py` | Tavily + Exa 双引擎搜索采集 | Step 2: 搜索素材 |
 | `scripts/image_gen.py` | APImart AI 配图生成 | Step 5: 生成配图 |
 | `scripts/wechat_api.py` | 微信素材上传 | Step 6: 上传图片 |
-| `scripts/publish.py` | 微信草稿箱发布 | Step 7: 发布到微信 |
+| `scripts/publish.py` | 微信草稿箱发布（自动记录档案） | Step 7: 发布到微信 |
+| `scripts/wechat_analytics.py` | 微信数据采集（阅读/分享/收藏） | Step 0.5: 数据同步 |
+| `scripts/analyze_performance.py` | 文章表现分析与洞察生成 | Step 0.5: 性能分析 |
 
 ---
 
@@ -200,6 +202,42 @@ py ai-wechat-publisher/scripts/publish.py output/article.md \
   --replacements "IMAGE_1:url1" "IMAGE_2:url2" "IMAGE_3:url3" \
   --cover-index 1
 ```
+
+---
+
+## 4. 数据分析
+
+### 同步文章数据
+
+```bash
+NO_PROXY=api.weixin.qq.com HTTP_PROXY= HTTPS_PROXY \
+py ai-wechat-publisher/scripts/wechat_analytics.py sync
+```
+
+### 单独查询
+
+```bash
+# 文章详细数据
+py ai-wechat-publisher/scripts/wechat_analytics.py article-detail --date 2026-05-11
+
+# 每日阅读指标
+py ai-wechat-publisher/scripts/wechat_analytics.py daily-read --date 2026-05-11
+
+# 账号概览
+py ai-wechat-publisher/scripts/wechat_analytics.py summary --begin-date 2026-05-01 --end-date 2026-05-11
+```
+
+### 性能分析
+
+```bash
+# 生成报告
+py ai-wechat-publisher/scripts/analyze_performance.py report --output output/performance_report.md
+
+# 输出洞察摘要
+py ai-wechat-publisher/scripts/analyze_performance.py insights
+```
+
+**发布档案**：`output/published_articles.json`（发布时自动记录）
 
 ---
 

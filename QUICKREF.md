@@ -144,6 +144,28 @@ py ai-wechat-publisher/scripts/research.py exa-search "[主题]" --category news
 
 ---
 
+## 📊 数据分析
+
+```bash
+# 一键同步所有文章数据
+NO_PROXY=api.weixin.qq.com HTTP_PROXY= HTTPS_PROXY \
+py ai-wechat-publisher/scripts/wechat_analytics.py sync
+
+# 单篇文章数据
+py ai-wechat-publisher/scripts/wechat_analytics.py article-detail --date 2026-05-11
+
+# 账号概览
+py ai-wechat-publisher/scripts/wechat_analytics.py summary --begin-date 2026-05-01 --end-date 2026-05-11
+
+# 生成性能报告
+py ai-wechat-publisher/scripts/analyze_performance.py report --output output/performance_report.md
+
+# 输出洞察摘要
+py ai-wechat-publisher/scripts/analyze_performance.py insights
+```
+
+---
+
 ## 🚀 发布命令
 
 **上传配图**：
@@ -174,7 +196,8 @@ py ai-wechat-publisher/scripts/wechat_api.py publish <media_id>
 | IP 白名单报错 | 后台添加报错中的 IP |
 | 代理连接失败 | 命令前加 `NO_PROXY=api.weixin.qq.com HTTP_PROXY= HTTPS_PROXY=` |
 | 配图太小 < 100KB | 重新执行 generate |
+| 数据同步无数据 | 检查文章是否在30天窗口内，确认 datacube API 可用 |
 
 ---
 
-*最后更新：2026-04-25*
+*最后更新：2026-05-09*
